@@ -1,0 +1,22 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # If your CI project is in a subfolder (e.g., example.com/kloudbricks)
+    # uncomment and set the RewriteBase line below:
+    # RewriteBase /kloudbricks/
+
+    # Redirect Trailing Slashes...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.+)/$ $1 [L,R=301]
+
+    # Send non-existing files to index.php
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ index.php/$1 [L]
+
+</IfModule>
+
+<IfModule !mod_rewrite.c>
+    # If mod_rewrite is not enabled
+    ErrorDocument 404 /index.php
+</IfModule>
