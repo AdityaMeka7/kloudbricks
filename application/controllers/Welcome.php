@@ -3,6 +3,21 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Welcome extends CI_Controller {
 
+	function __construct()
+	{
+		parent::__construct();
+		date_default_timezone_set("Asia/Kolkata");
+		//echo 'hii';exit;
+		$this->load->helper('url','form','HTML');
+		$this->load->model('dashboard/adminmodel');
+		$this->db->query('SET SESSION sql_mode =
+                  REPLACE(REPLACE(REPLACE(
+                  @@sql_mode,
+                  "ONLY_FULL_GROUP_BY,", ""),
+                  ",ONLY_FULL_GROUP_BY", ""),
+                  "ONLY_FULL_GROUP_BY", "")');
+	}
+
 /*home_page*/
 
 /*index*/
@@ -31,9 +46,42 @@ public function products(){
 
 /*careers*/
 public function careers(){
+	$data['types']  = $this->adminmodel->common_fetch('job_types',['status' => 1,'delete_status' => 1]);
 	$this->load->view('includes/header.php');
-	$this->load->view('careers.php');
+	$this->load->view('careers.php',$data);
 	$this->load->view('includes/footer.php');
+}
+
+public function get_careers(){
+	$data = $this->adminmodel->get_careers_website();
+	echo json_encode($data);
+}
+
+public function jobs_search() {
+	header('Content-Type: application/json');
+
+	$keyword  = $this->input->get('keyword');
+	$type     = $this->input->get('type');
+	$location = $this->input->get('location');
+
+	$this->db->select('careers.*,job_types.name as type_name');
+	$this->db->from('careers');
+	$this->db->where(['careers.status' => 1,'careers.delete_status' => 1]);
+
+	$this->db->join('job_types','job_types.id=careers.type','left');
+
+	if (!empty($keyword)) {
+		$this->db->like('careers.name', $keyword);
+	}
+	if (!empty($type)) {
+		$this->db->where('careers.type', $type);
+	}
+	if (!empty($location)) {
+		$this->db->where('careers.location', $location);
+	}
+
+	$query = $this->db->get();
+	echo json_encode($query->result());
 }
 /*careers*/
 

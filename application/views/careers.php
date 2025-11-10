@@ -101,64 +101,153 @@
     </div>
 
     <h3 class="section-title">Opening Positions</h3>
-    <form class="">
-     <div class="row">
-         <div class="col-lg-6">
-        <input type="text" class="form-control" placeholder="Search For Career">
-      </div>
-  <div class="col-lg-2">
-     <div class="select-box">
-        <select class="form-select" aria-label="Job Type">
-          <option>Job Types</option>
-          <option>IT & Development</option>
-          <option>Design</option>
-          <option>Business</option>
+    <!-- 🔍 Search Form -->
+<form id="searchForm" class="">
+  <div class="row">
+    <div class="col-lg-6">
+      <input type="text" id="searchKeyword" class="form-control" placeholder="Search For Career">
+    </div>
+
+    <div class="col-lg-2">
+      <div class="select-box">
+        <select id="jobType" class="form-select" aria-label="Job Type">
+          <option value="">Job Types</option>
+          <?php foreach($types as $row){?>
+          <option value="<?=$row['id']?>"><?=$row['name']?></option>
+          <?php } ?>
         </select>
-      </div>
-
-       
-  </div>
-  <div class="col-lg-2">
-     <div class="select-box">
-        <select class="form-select" aria-label="Locations">
-          <option>Locations</option>
-          <option>Remote</option>
-          <option>Onsite</option>
-        </select>
-      </div>
-  </div>
-
-  <div class="col-lg-1">
-    <button class="btn btn-primary">Search</button>
-  </div>
-     </div>
-      
-    </form>
-   
-
-    <div class="job-list pt-4">
-      <div class="job-item">
-        <div class="job-info">
-          <span class="job-title">QA Leader (Manual & Auto)</span>
-          <span class="job-meta">IT & Development &nbsp; | &nbsp; Job Location</span>
-        </div>
-        <button class="job-openings-btn">20 Openings</button>
-      </div>
-      <div class="job-item">
-        <div class="job-info">
-          <span class="job-title">QA Leader (Manual & Auto)</span>
-          <span class="job-meta">IT & Development &nbsp; | &nbsp; Job Location</span>
-        </div>
-        <button class="job-openings-btn">20 Openings</button>
-      </div>
-      <div class="job-item">
-        <div class="job-info">
-          <span class="job-title">QA Leader (Manual & Auto)</span>
-          <span class="job-meta">IT & Development &nbsp; | &nbsp; Job Location</span>
-        </div>
-        <button class="job-openings-btn">20 Openings</button>
       </div>
     </div>
+
+    <div class="col-lg-2">
+      <div class="select-box">
+        <select id="jobLocation" class="form-select" aria-label="Locations">
+          <option value="">Locations</option>
+          <option value="Remote">Remote</option>
+          <option value="Onsite">Onsite</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="col-lg-1">
+      <button type="submit" class="btn btn-primary">Search</button>
+    </div>
+  </div>
+</form>
+
+<!-- Job List -->
+<div class="job-list pt-4" id="jobList"></div>
+
+<script>
+  const jobList = document.getElementById("jobList");
+
+  // Function to render jobs
+  function renderJobs(jobs) {
+    jobList.innerHTML = "";
+
+    if (!jobs || jobs.length === 0) {
+      jobList.innerHTML = "<p>No jobs found.</p>";
+      return;
+    }
+
+    jobs.forEach(job => {
+      const jobItem = document.createElement("div");
+      jobItem.classList.add("job-item");
+      jobItem.innerHTML = `
+        <div class="job-info">
+          <span class="job-title">${job.name}</span>
+          <span class="job-meta">${job.type_name} &nbsp; | &nbsp; ${job.location}</span>
+        </div>
+        <button class="job-openings-btn">${job.openings} Openings</button>
+      `;
+      jobList.appendChild(jobItem);
+    });
+  }
+
+  // Function to load data from backend
+  async function fetchJobs(params = {}) {
+    try {
+      const query = new URLSearchParams(params).toString();
+      const response = await fetch(`jobs_search?${query}`); // CI endpoint
+      const data = await response.json();
+      renderJobs(data);
+    } catch (error) {
+      console.error("Error fetching jobs:", error);
+    }
+  }
+
+  // Load all jobs when page loads
+  fetchJobs();
+
+  // Handle search form
+  document.getElementById("searchForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    const keyword = document.getElementById("searchKeyword").value;
+    const jobType = document.getElementById("jobType").value;
+    const jobLocation = document.getElementById("jobLocation").value;
+
+    fetchJobs({
+      keyword: keyword,
+      type: jobType,
+      location: jobLocation
+    });
+  });
+</script>
+
+   
+
+    <!-- <div class="job-list pt-4">
+      <div class="job-item">
+        <div class="job-info">
+          <span class="job-title">QA Leader (Manual & Auto)</span>
+          <span class="job-meta">IT & Development &nbsp; | &nbsp; Job Location</span>
+        </div>
+        <button class="job-openings-btn">20 Openings</button>
+      </div>
+      <div class="job-item">
+        <div class="job-info">
+          <span class="job-title">QA Leader (Manual & Auto)</span>
+          <span class="job-meta">IT & Development &nbsp; | &nbsp; Job Location</span>
+        </div>
+        <button class="job-openings-btn">20 Openings</button>
+      </div>
+      <div class="job-item">
+        <div class="job-info">
+          <span class="job-title">QA Leader (Manual & Auto)</span>
+          <span class="job-meta">IT & Development &nbsp; | &nbsp; Job Location</span>
+        </div>
+        <button class="job-openings-btn">20 Openings</button>
+      </div>
+    </div> -->
+
+    <div class="job-list pt-4" id="jobList"></div>
+
+<script>
+  fetch('<?=base_url('get_careers')?>') // replace with your backend route
+    .then(res => res.json())
+    .then(jobs => {
+      const jobList = document.getElementById('jobList');
+      jobList.innerHTML = ''; // clear old content
+
+      jobs.forEach(job => {
+        const jobItem = document.createElement('div');
+        jobItem.classList.add('job-item');
+
+        jobItem.innerHTML = `
+          <div class="job-info">
+            <span class="job-title">${job.name}</span>
+            <span class="job-meta">${job.type_name} &nbsp; | &nbsp; ${job.location}</span>
+          </div>
+          <button class="job-openings-btn">${job.openings} Openings</button>
+        `;
+
+        jobList.appendChild(jobItem);
+      });
+    })
+    .catch(err => console.error('Error fetching jobs:', err));
+</script>
+
 
   </div>
 
