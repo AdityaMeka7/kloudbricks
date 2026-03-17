@@ -83,9 +83,5 @@ public function logout(){
 /*login*/
 
 
-public function add_git(){
-	echo 'git data';
-}
-
 }
 ?>
